@@ -6,85 +6,64 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <style>
-    body {
-        margin: 0;
-        height: 100vh;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        background-color: white;
-        transition: background-color 0.3s;
-    }
-
-    body.dark {
-        background-color: #111;
-    }
-
-    img {
-        max-width: 70%;
-        max-height: 70%;
-        image-rendering: pixelated;
-        margin-bottom: 15px;
-    }
-
-    #tickleBtn, #darkModeBtn {
-        padding: 12px 22px;
-        font-size: 16px;
-        border: none;
-        border-radius: 9px;
-        cursor: pointer;
-        margin-top: 8px;
-    }
-
-    #tickleBtn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    #darkModeBtn {
-        margin-top: 16px;
-        background-color: #000;
-        color: #fff;
-    }
-
-    body.dark #darkModeBtn {
-        background-color: #fff;
-        color: #000;
-    }
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: white;
+}
+img {
+    max-width: 70%;
+    image-rendering: pixelated;
+    margin-bottom: 12px;
+}
+button {
+    padding: 12px 22px;
+    font-size: 16px;
+    border-radius: 9px;
+    border: none;
+    cursor: pointer;
+    margin-top: 8px;
+}
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
 </style>
 </head>
 
 <body>
 
-<img id="ailaImg" src="element/아일라_Idle.gif">
-
-<button id="tickleBtn">간지럽히기</button>
-<button id="darkModeBtn">다크모드</button>
+<img id="aila" src="element/아일라_Idle.gif">
+<button id="tickle">간지럽히기</button>
 
 <script>
-const img = document.getElementById("ailaImg");
-const tickleBtn = document.getElementById("tickleBtn");
-const darkBtn = document.getElementById("darkModeBtn");
+const img = document.getElementById("aila");
+const btn = document.getElementById("tickle");
 
 let state = "idle"; // idle | tickle1 | tickle2 | end | cooldown
-let holdTimer = null;
 let holding = false;
+let holdTimer = null;
+let pressTime = 0;
 
-/* GIF 강제 재시작 함수 */
 function play(src) {
     img.src = "";
     img.offsetHeight;
     img.src = src;
 }
 
-/* ===== 간지럽히기 버튼 ===== */
-
-tickleBtn.addEventListener("pointerdown", () => {
+/* 눌렀을 때 */
+btn.addEventListener("pointerdown", e => {
     if (state !== "idle") return;
 
+    e.preventDefault(); // ★ 중요
+    pressTime = Date.now();
     holding = true;
     state = "tickle1";
+
     play("element/아일라_Tickle_Idle1.gif");
 
     holdTimer = setTimeout(() => {
@@ -95,42 +74,40 @@ tickleBtn.addEventListener("pointerdown", () => {
     }, 3000);
 });
 
-function releaseTickle() {
+/* 뗐을 때 */
+function release() {
     if (!holding) return;
+
+    const heldDuration = Date.now() - pressTime;
+
+    // 너무 짧은 클릭은 무시 (버그 방지)
+    if (heldDuration < 150) return;
+
     holding = false;
     clearTimeout(holdTimer);
 
     if (state === "tickle1" || state === "tickle2") {
         state = "end";
-        tickleBtn.disabled = true;
+        btn.disabled = true;
+
         play("element/아일라_Tickle_End.gif");
 
-        /* End 애니메이션 종료 후 */
         setTimeout(() => {
             play("element/아일라_Idle.gif");
             state = "cooldown";
 
             setTimeout(() => {
                 state = "idle";
-                tickleBtn.disabled = false;
+                btn.disabled = false;
             }, 2000);
 
-        }, 1200); // End GIF 길이에 맞게 조절
+        }, 1200); // End GIF 길이
     }
 }
 
-tickleBtn.addEventListener("pointerup", releaseTickle);
-tickleBtn.addEventListener("pointerleave", releaseTickle);
-tickleBtn.addEventListener("pointercancel", releaseTickle);
-
-/* ===== 다크모드 ===== */
-
-darkBtn.addEventListener("click", () => {
-    document.body.classList.toggle("dark");
-    darkBtn.textContent = document.body.classList.contains("dark")
-        ? "라이트모드"
-        : "다크모드";
-});
+btn.addEventListener("pointerup", release);
+btn.addEventListener("pointerleave", release);
+btn.addEventListener("pointercancel", release);
 </script>
 
 </body>
