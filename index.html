@@ -14,6 +14,7 @@
             margin: 0;
             height: 100vh;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             background-color: white;
@@ -28,9 +29,26 @@
             max-width: 70%;
             max-height: 70%;
             image-rendering: pixelated;
-            margin-bottom: 80px; /* 🔼 위로 이동 */
+            margin-bottom: 12px;
         }
 
+        /* 간지럽히기 버튼 */
+        #tickleBtn {
+            padding: 12px 26px;
+            font-size: 16px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            background-color: #ff7aa2;
+            color: #fff;
+        }
+
+        #tickleBtn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* 다크모드 버튼 */
         #darkModeBtn {
             position: fixed;
             bottom: 28px;
@@ -54,30 +72,96 @@
             img {
                 max-width: 75%;
                 max-height: 75%;
-                margin-bottom: 60px;
             }
 
-            #darkModeBtn {
-                padding: 15px 26px;
-                font-size: 17px;
-                border-radius: 11px;
-                bottom: 30px;
+            #tickleBtn {
+                padding: 14px 30px;
+                font-size: 16px;
             }
         }
     </style>
 </head>
 <body>
 
-    <img src="element/아일라_Idle.gif" alt="아일라 Idle 애니메이션">
+    <img id="ayla"
+         src="element/아일라_Idle.gif"
+         alt="아일라">
+
+    <button id="tickleBtn">간지럽히기</button>
 
     <button id="darkModeBtn">다크모드</button>
 
     <script>
-        const btn = document.getElementById("darkModeBtn");
+        const ayla = document.getElementById("ayla");
+        const tickleBtn = document.getElementById("tickleBtn");
+        const darkBtn = document.getElementById("darkModeBtn");
 
-        btn.addEventListener("click", () => {
+        let holdTimer = null;
+        let longHold = false;
+        let locked = false;
+
+        const GIF = {
+            idle: "element/아일라_Idle.gif",
+            t1: "element/아일라_Tickle_Idle1.gif",
+            t2: "element/아일라_Tickle_Idle2.gif",
+            end: "element/아일라_Tickle_End.gif"
+        };
+
+        function startTickle() {
+            if (locked) return;
+
+            longHold = false;
+            ayla.src = GIF.t1;
+
+            holdTimer = setTimeout(() => {
+                longHold = true;
+                ayla.src = GIF.t2;
+            }, 3000);
+        }
+
+        function endTickle() {
+            if (locked) return;
+
+            clearTimeout(holdTimer);
+
+            ayla.src = GIF.end;
+            lockButton();
+
+            /* End GIF 재생 시간 가정 (예: 1.2초) */
+            setTimeout(() => {
+                ayla.src = GIF.idle;
+            }, 1200);
+        }
+
+        function lockButton() {
+            locked = true;
+            tickleBtn.disabled = true;
+
+            /* End + Idle 이후 2초 */
+            setTimeout(() => {
+                locked = false;
+                tickleBtn.disabled = false;
+            }, 3200);
+        }
+
+        /* 마우스 */
+        tickleBtn.addEventListener("mousedown", startTickle);
+        tickleBtn.addEventListener("mouseup", endTickle);
+        tickleBtn.addEventListener("mouseleave", endTickle);
+
+        /* 터치 */
+        tickleBtn.addEventListener("touchstart", e => {
+            e.preventDefault();
+            startTickle();
+        });
+
+        tickleBtn.addEventListener("touchend", endTickle);
+
+        /* 다크모드 */
+        darkBtn.addEventListener("click", () => {
             document.body.classList.toggle("dark");
-            btn.textContent = document.body.classList.contains("dark")
+            darkBtn.textContent =
+                document.body.classList.contains("dark")
                 ? "라이트모드"
                 : "다크모드";
         });
