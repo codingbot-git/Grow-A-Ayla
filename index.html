@@ -18,22 +18,24 @@
             background-color: #111;
         }
 
+        /* 아일라 크기 조절 */
         img {
-            max-width: 90%;
-            max-height: 90%;
+            max-width: 70%;
+            max-height: 70%;
             image-rendering: pixelated;
         }
 
-        /* 다크모드 버튼 */
+        /* 하단 중앙 버튼 */
         #darkModeBtn {
             position: fixed;
-            top: 15px;
-            right: 15px;
-            padding: 8px 14px;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 18px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 15px;
             background-color: #000;
             color: #fff;
         }
@@ -46,9 +48,9 @@
 </head>
 <body>
 
-    <button id="darkModeBtn">다크모드</button>
-
     <img src="element/아일라_Idle.gif" alt="아일라 Idle 애니메이션">
+
+    <button id="darkModeBtn">다크모드</button>
 
     <script>
         const btn = document.getElementById("darkModeBtn");
