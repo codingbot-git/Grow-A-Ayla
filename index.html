@@ -25,11 +25,21 @@ body.dark {
     background-color: #111;
 }
 
-img {
-    max-width: 70%;
-    max-height: 70%;
-    image-rendering: pixelated;
+/* 🔒 아일라 고정 박스 */
+#aylaBox {
+    width: 300px;
+    height: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     margin-bottom: 12px;
+}
+
+#aylaBox img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    image-rendering: pixelated;
 }
 
 #tickleBtn {
@@ -39,7 +49,7 @@ img {
     border-radius: 10px;
     cursor: pointer;
     margin-bottom: 80px;
-    touch-action: none; /* ★ 모바일 핵심 */
+    touch-action: none; /* 모바일 입력 안정 */
 }
 
 #tickleBtn:disabled {
@@ -66,10 +76,11 @@ body.dark #darkModeBtn {
     color: #000;
 }
 
+/* 📱 모바일 */
 @media (max-width: 600px) {
-    img {
-        max-width: 75%;
-        max-height: 75%;
+    #aylaBox {
+        width: 260px;
+        height: 260px;
     }
 
     #tickleBtn {
@@ -82,7 +93,9 @@ body.dark #darkModeBtn {
 
 <body>
 
-<img id="ayla" src="element/아일라_Idle.gif" alt="아일라">
+<div id="aylaBox">
+    <img id="ayla" src="element/아일라_Idle.gif" alt="아일라">
+</div>
 
 <button id="tickleBtn">간지럽히기</button>
 <button id="darkModeBtn">다크모드</button>
@@ -102,7 +115,6 @@ const GIF = {
 let state = "idle"; // idle | tickle1 | tickle2 | end
 let holding = false;
 let holdTimer = null;
-let pressTime = 0;
 let activePointerId = null;
 
 function play(src) {
@@ -127,10 +139,9 @@ tickleBtn.addEventListener("pointerdown", e => {
     e.preventDefault();
 
     activePointerId = e.pointerId;
-    tickleBtn.setPointerCapture(activePointerId); // ★ 핵심
+    tickleBtn.setPointerCapture(activePointerId);
 
     holding = true;
-    pressTime = Date.now();
     state = "tickle1";
 
     play(GIF.t1);
@@ -143,7 +154,7 @@ tickleBtn.addEventListener("pointerdown", e => {
     }, 3000);
 });
 
-/* 진짜로 손 뗐을 때만 End */
+/* 손을 뗐을 때만 End */
 function release(e) {
     if (!holding) return;
     if (e.pointerId !== activePointerId) return;
