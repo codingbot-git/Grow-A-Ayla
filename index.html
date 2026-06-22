@@ -14,6 +14,7 @@
             margin: 0;
             height: 100vh;
             display: flex;
+            flex-direction: column; /* 💡 이미지와 버튼을 세로로 정렬 */
             justify-content: center;
             align-items: center;
             background-color: white;
@@ -24,13 +25,60 @@
             background-color: #111;
         }
 
-        img {
-            max-width: 70%;
-            max-height: 70%;
-            image-rendering: pixelated;
-            margin-bottom: 80px; /* 🔼 위로 이동 */
+        /* 컨테이너를 만들어 이미지와 간지럽히기 버튼을 묶음 */
+        .character-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 80px; /* 기존 img에 있던 마진을 컨테이너로 이동 */
         }
 
+        img {
+            max-width: 70%;
+            max-height: 70vh;
+            image-rendering: pixelated;
+            margin-bottom: 20px; /* 아일라와 간지럽히기 버튼 사이의 간격 */
+        }
+
+        /* 간지럽히기 버튼 스타일 */
+        #tickleBtn {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border: 2px solid #333;
+            border-radius: 8px;
+            background-color: #fff;
+            color: #333;
+            cursor: pointer;
+            user-select: none; /* 꾹 누를 때 텍스트 블록 지정 방지 */
+            -webkit-user-select: none;
+            transition: all 0.2s;
+        }
+
+        #tickleBtn:active:not(:disabled) {
+            background-color: #eee;
+            transform: scale(0.95);
+        }
+
+        #tickleBtn:disabled {
+            background-color: #ccc;
+            border-color: #aaa;
+            color: #888;
+            cursor: not-allowed;
+        }
+
+        body.dark #tickleBtn {
+            background-color: #222;
+            color: #fff;
+            border-color: #555;
+        }
+        body.dark #tickleBtn:disabled {
+            background-color: #444;
+            border-color: #333;
+            color: #777;
+        }
+
+        /* 다크모드 버튼 위치 고정 */
         #darkModeBtn {
             position: fixed;
             bottom: 28px;
@@ -51,10 +99,18 @@
         }
 
         @media (max-width: 600px) {
+            .character-container {
+                margin-bottom: 60px;
+            }
+
             img {
                 max-width: 75%;
-                max-height: 75%;
-                margin-bottom: 60px;
+                max-height: 65vh;
+            }
+
+            #tickleBtn {
+                padding: 14px 28px;
+                font-size: 17px;
             }
 
             #darkModeBtn {
@@ -68,16 +124,93 @@
 </head>
 <body>
 
-    <img src="element/아일라_Idle.gif" alt="아일라 Idle 애니메이션">
+    <div class="character-container">
+        <img id="aylaImg" src="elemental/아일라_Idle.gif" alt="아일라 Idle 애니메이션">
+        <button id="tickleBtn">간지럽히기</button>
+    </div>
 
     <button id="darkModeBtn">다크모드</button>
 
     <script>
-        const btn = document.getElementById("darkModeBtn");
+        // DOM 요소 선언
+        const aylaImg = document.getElementById("aylaImg");
+        const tickleBtn = document.getElementById("tickleBtn");
+        const darkModeBtn = document.getElementById("darkModeBtn");
 
-        btn.addEventListener("click", () => {
+        // 상태 관리 변수들
+        let pressTimer = null;      // 3초 체크용 타이머
+        let isPressing = false;     // 현재 누르고 있는 상태인지 여부
+        let longPressed = false;    // 3초 이상 지나갔는지 여부
+
+        // ⚙️ 설정값 (필요 시 수정)
+        const PATH = "elemental/";  // GIF 폴더 경로
+        const TICKLE_END_DURATION = 1500; // 아일라_Tickle_End.gif의 실제 재생 시간 (밀리초 단위, 1.5초)
+
+        // 캐시 방지(새로고침 효과)를 위한 함수 - GIF가 처음부터 재생되도록 만듭니다.
+        function setGif(gifName) {
+            aylaImg.src = `${PATH}${gifName}?t=${new Date().getTime()}`;
+        }
+
+        // 1. 누르기 시작했을 때 (마우스 / 터치 공통)
+        function startPress(e) {
+            if (tickleBtn.disabled || isPressing) return;
+            e.preventDefault(); // 모바일 롱프레스 시 팝업 뜨는 현상 방지
+            
+            isPressing = true;
+            longPressed = false;
+
+            // 1단계: 즉시 Tickle_Idle1 재생
+            setGif("아일라_Tickle_Idle1.gif");
+
+            // 3초 후에 실행될 타이머 등록
+            pressTimer = setTimeout(() => {
+                if (isPressing) {
+                    longPressed = true;
+                    // 2단계: 3초 이상 누르면 Tickle_Idle2 재생
+                    setGif("아일라_Tickle_Idle2.gif");
+                }
+            }, 3000); // 3000ms = 3초
+        }
+
+        // 2. 손을 뗐을 때 (마우스 / 터치 공통)
+        function endPress() {
+            if (!isPressing) return;
+            isPressing = false;
+
+            // 타이머 해제
+            clearTimeout(pressTimer);
+
+            // 즉시 버튼 비활성화 (End 재생 중 + 종료 후 2초 동안 유지하기 위함)
+            tickleBtn.disabled = true;
+
+            // 3단계: 손을 떼면 무조건 Tickle_End 재생
+            setGif("아일라_Tickle_End.gif");
+
+            // Tickle_End가 끝난 후 처리 (End 재생시간 + 대기시간 2초)
+            setTimeout(() => {
+                // 원래 대기(Idle) 상태로 복귀
+                setGif("아일라_Idle.gif");
+                
+                // 복귀 후 2초간 추가 비활성화 유지
+                setTimeout(() => {
+                    tickleBtn.disabled = false;
+                }, 2000); // 2000ms = 2초
+
+            }, TICKLE_END_DURATION);
+        }
+
+        // 이벤트 리스너 등록 (PC 마우스 및 모바일 터치 지원)
+        tickleBtn.addEventListener("mousedown", startPress);
+        window.addEventListener("mouseup", endPress); // 버튼 밖에서 떼도 인식하도록 window에 등록
+
+        tickleBtn.addEventListener("touchstart", startPress, { passive: false });
+        window.addEventListener("touchend", endPress);
+        window.addEventListener("touchcancel", endPress); // 터치가 강제로 취소될 때 예외 처리
+
+        // 다크 모드 토글
+        darkModeBtn.addEventListener("click", () => {
             document.body.classList.toggle("dark");
-            btn.textContent = document.body.classList.contains("dark")
+            darkModeBtn.textContent = document.body.classList.contains("dark")
                 ? "라이트모드"
                 : "다크모드";
         });
