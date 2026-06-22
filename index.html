@@ -25,10 +25,10 @@ body.dark {
     background-color: #111;
 }
 
-/* 🔒 아일라 고정 박스 */
+/* 🔒 기본(모바일 기준) 아일라 박스 */
 #aylaBox {
-    width: 300px;
-    height: 300px;
+    width: 260px;
+    height: 260px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -42,6 +42,14 @@ body.dark {
     image-rendering: pixelated;
 }
 
+/* 🖥 PC에서만 크게 */
+@media (min-width: 768px) {
+    #aylaBox {
+        width: 520px;   /* 2배 */
+        height: 520px;  /* 2배 */
+    }
+}
+
 #tickleBtn {
     padding: 14px 26px;
     font-size: 17px;
@@ -49,7 +57,7 @@ body.dark {
     border-radius: 10px;
     cursor: pointer;
     margin-bottom: 80px;
-    touch-action: none; /* 모바일 입력 안정 */
+    touch-action: none;
 }
 
 #tickleBtn:disabled {
@@ -75,19 +83,6 @@ body.dark #darkModeBtn {
     background-color: #fff;
     color: #000;
 }
-
-/* 📱 모바일 */
-@media (max-width: 600px) {
-    #aylaBox {
-        width: 260px;
-        height: 260px;
-    }
-
-    #tickleBtn {
-        padding: 16px 30px;
-        font-size: 18px;
-    }
-}
 </style>
 </head>
 
@@ -112,14 +107,14 @@ const GIF = {
     end: "element/아일라_Tickle_End.gif"
 };
 
-let state = "idle"; // idle | tickle1 | tickle2 | end
+let state = "idle";
 let holding = false;
 let holdTimer = null;
 let activePointerId = null;
 
 function play(src) {
     ayla.src = "";
-    ayla.offsetHeight; // GIF 리셋
+    ayla.offsetHeight;
     ayla.src = src;
 }
 
@@ -132,18 +127,16 @@ darkBtn.addEventListener("click", () => {
             : "다크모드";
 });
 
-/* 간지럽히기 시작 */
+/* 간지럽히기 */
 tickleBtn.addEventListener("pointerdown", e => {
     if (state !== "idle") return;
 
     e.preventDefault();
-
     activePointerId = e.pointerId;
     tickleBtn.setPointerCapture(activePointerId);
 
     holding = true;
     state = "tickle1";
-
     play(GIF.t1);
 
     holdTimer = setTimeout(() => {
@@ -154,32 +147,27 @@ tickleBtn.addEventListener("pointerdown", e => {
     }, 3000);
 });
 
-/* 손을 뗐을 때만 End */
 function release(e) {
     if (!holding) return;
     if (e.pointerId !== activePointerId) return;
 
     holding = false;
     clearTimeout(holdTimer);
-
     tickleBtn.releasePointerCapture(activePointerId);
     activePointerId = null;
 
     if (state === "tickle1" || state === "tickle2") {
         state = "end";
         tickleBtn.disabled = true;
-
         play(GIF.end);
 
         setTimeout(() => {
             play(GIF.idle);
-
             setTimeout(() => {
                 state = "idle";
                 tickleBtn.disabled = false;
             }, 2000);
-
-        }, 1200); // End GIF 길이
+        }, 1200);
     }
 }
 
