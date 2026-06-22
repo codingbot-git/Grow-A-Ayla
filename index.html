@@ -1,175 +1,180 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>아일라 키우기</title>
-    <meta name="viewport"
-          content="width=device-width,
-                   initial-scale=1.0,
-                   maximum-scale=1.0,
-                   user-scalable=no">
+<meta charset="UTF-8">
+<title>아일라 키우기</title>
+<meta name="viewport"
+      content="width=device-width,
+               initial-scale=1.0,
+               maximum-scale=1.0,
+               user-scalable=no">
 
-    <style>
-        body {
-            margin: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background-color: white;
-            transition: background-color 0.3s;
-        }
+<style>
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+    transition: background-color 0.3s;
+}
 
-        body.dark {
-            background-color: #111;
-        }
+body.dark {
+    background-color: #111;
+}
 
-        img {
-            max-width: 70%;
-            max-height: 70%;
-            image-rendering: pixelated;
-            margin-bottom: 12px;
-        }
+img {
+    max-width: 70%;
+    max-height: 70%;
+    image-rendering: pixelated;
+    margin-bottom: 12px;
+}
 
-        #tickleBtn {
-            padding: 14px 26px;
-            font-size: 17px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            margin-bottom: 80px;
-        }
+#tickleBtn {
+    padding: 14px 26px;
+    font-size: 17px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-bottom: 80px;
+    touch-action: none; /* ★ 모바일 핵심 */
+}
 
-        #tickleBtn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+#tickleBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
 
-        #darkModeBtn {
-            position: fixed;
-            bottom: 28px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 12px 22px;
-            font-size: 17px;
-            border: none;
-            border-radius: 9px;
-            cursor: pointer;
-            background-color: #000;
-            color: #fff;
-        }
+#darkModeBtn {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 22px;
+    font-size: 17px;
+    border: none;
+    border-radius: 9px;
+    cursor: pointer;
+    background-color: #000;
+    color: #fff;
+}
 
-        body.dark #darkModeBtn {
-            background-color: #fff;
-            color: #000;
-        }
+body.dark #darkModeBtn {
+    background-color: #fff;
+    color: #000;
+}
 
-        @media (max-width: 600px) {
-            img {
-                max-width: 75%;
-                max-height: 75%;
-            }
+@media (max-width: 600px) {
+    img {
+        max-width: 75%;
+        max-height: 75%;
+    }
 
-            #tickleBtn {
-                padding: 16px 30px;
-                font-size: 18px;
-            }
-        }
-    </style>
+    #tickleBtn {
+        padding: 16px 30px;
+        font-size: 18px;
+    }
+}
+</style>
 </head>
+
 <body>
 
-    <img id="ayla" src="element/아일라_Idle.gif" alt="아일라">
+<img id="ayla" src="element/아일라_Idle.gif" alt="아일라">
 
-    <button id="tickleBtn">간지럽히기</button>
+<button id="tickleBtn">간지럽히기</button>
+<button id="darkModeBtn">다크모드</button>
 
-    <button id="darkModeBtn">다크모드</button>
+<script>
+const ayla = document.getElementById("ayla");
+const tickleBtn = document.getElementById("tickleBtn");
+const darkBtn = document.getElementById("darkModeBtn");
 
-    <script>
-        const ayla = document.getElementById("ayla");
-        const tickleBtn = document.getElementById("tickleBtn");
-        const darkBtn = document.getElementById("darkModeBtn");
+const GIF = {
+    idle: "element/아일라_Idle.gif",
+    t1: "element/아일라_Tickle_Idle1.gif",
+    t2: "element/아일라_Tickle_Idle2.gif",
+    end: "element/아일라_Tickle_End.gif"
+};
 
-        const GIF = {
-            idle: "element/아일라_Idle.gif",
-            t1: "element/아일라_Tickle_Idle1.gif",
-            t2: "element/아일라_Tickle_Idle2.gif",
-            end: "element/아일라_Tickle_End.gif"
-        };
+let state = "idle"; // idle | tickle1 | tickle2 | end
+let holding = false;
+let holdTimer = null;
+let pressTime = 0;
+let activePointerId = null;
 
-        let state = "idle";     // idle | tickle1 | tickle2 | end
-        let holding = false;
-        let holdTimer = null;
-        let pressTime = 0;
+function play(src) {
+    ayla.src = "";
+    ayla.offsetHeight; // GIF 리셋
+    ayla.src = src;
+}
 
-        function play(src) {
-            ayla.src = "";
-            ayla.offsetHeight; // GIF 리셋
-            ayla.src = src;
+/* 다크모드 */
+darkBtn.addEventListener("click", () => {
+    document.body.classList.toggle("dark");
+    darkBtn.textContent =
+        document.body.classList.contains("dark")
+            ? "라이트모드"
+            : "다크모드";
+});
+
+/* 간지럽히기 시작 */
+tickleBtn.addEventListener("pointerdown", e => {
+    if (state !== "idle") return;
+
+    e.preventDefault();
+
+    activePointerId = e.pointerId;
+    tickleBtn.setPointerCapture(activePointerId); // ★ 핵심
+
+    holding = true;
+    pressTime = Date.now();
+    state = "tickle1";
+
+    play(GIF.t1);
+
+    holdTimer = setTimeout(() => {
+        if (holding && state === "tickle1") {
+            state = "tickle2";
+            play(GIF.t2);
         }
+    }, 3000);
+});
 
-        /* 다크모드 */
-        darkBtn.addEventListener("click", () => {
-            document.body.classList.toggle("dark");
-            darkBtn.textContent =
-                document.body.classList.contains("dark")
-                    ? "라이트모드"
-                    : "다크모드";
-        });
+/* 진짜로 손 뗐을 때만 End */
+function release(e) {
+    if (!holding) return;
+    if (e.pointerId !== activePointerId) return;
 
-        /* 간지럽히기 시작 */
-        tickleBtn.addEventListener("pointerdown", e => {
-            if (state !== "idle") return;
+    holding = false;
+    clearTimeout(holdTimer);
 
-            e.preventDefault();
-            holding = true;
-            pressTime = Date.now();
-            state = "tickle1";
+    tickleBtn.releasePointerCapture(activePointerId);
+    activePointerId = null;
 
-            play(GIF.t1);
+    if (state === "tickle1" || state === "tickle2") {
+        state = "end";
+        tickleBtn.disabled = true;
 
-            holdTimer = setTimeout(() => {
-                if (holding && state === "tickle1") {
-                    state = "tickle2";
-                    play(GIF.t2);
-                }
-            }, 3000);
-        });
+        play(GIF.end);
 
-        /* 손을 뗐을 때만 End */
-        function release(e) {
-            if (!holding) return;
-            if (e.type !== "pointerup" && e.type !== "pointercancel") return;
+        setTimeout(() => {
+            play(GIF.idle);
 
-            const held = Date.now() - pressTime;
-            if (held < 200) return; // 너무 짧은 클릭 방지
+            setTimeout(() => {
+                state = "idle";
+                tickleBtn.disabled = false;
+            }, 2000);
 
-            holding = false;
-            clearTimeout(holdTimer);
+        }, 1200); // End GIF 길이
+    }
+}
 
-            if (state === "tickle1" || state === "tickle2") {
-                state = "end";
-                tickleBtn.disabled = true;
-
-                play(GIF.end);
-
-                setTimeout(() => {
-                    play(GIF.idle);
-
-                    setTimeout(() => {
-                        state = "idle";
-                        tickleBtn.disabled = false;
-                    }, 2000);
-
-                }, 1200); // End GIF 재생 시간
-            }
-        }
-
-        tickleBtn.addEventListener("pointerup", release);
-        tickleBtn.addEventListener("pointercancel", release);
-        // pointerleave ❌ 사용 안 함 (버그 원인)
-    </script>
+tickleBtn.addEventListener("pointerup", release);
+tickleBtn.addEventListener("pointercancel", release);
+</script>
 
 </body>
 </html>
