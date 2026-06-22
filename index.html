@@ -3,8 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>아일라 키우기</title>
-
-    <!-- 📱 모바일 확대 방지 -->
     <meta name="viewport"
           content="width=device-width,
                    initial-scale=1.0,
@@ -30,9 +28,9 @@
             max-width: 70%;
             max-height: 70%;
             image-rendering: pixelated;
+            margin-bottom: 80px; /* 🔼 위로 이동 */
         }
 
-        /* 버튼 (PC) */
         #darkModeBtn {
             position: fixed;
             bottom: 28px;
@@ -52,47 +50,23 @@
             color: #000;
         }
 
-        /* 📱 모바일 (조금만 축소) */
-        @media (max-width: 768px) {
-            #darkModeBtn {
-                padding: 15px 26px;   /* ← 살짝 줄임 */
-                font-size: 17px;
-                border-radius: 11px;
-                bottom: 30px;
-            }
-
+        @media (max-width: 600px) {
             img {
                 max-width: 75%;
                 max-height: 75%;
+                margin-bottom: 60px;
             }
-        }
 
-        /* 📐 가로모드 차단 화면 */
-        #rotateLock {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: #000;
-            color: #fff;
-            font-size: 20px;
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-        }
-
-        @media screen and (orientation: landscape) and (max-width: 768px) {
-            #rotateLock {
-                display: flex;
+            #darkModeBtn {
+                padding: 15px 26px;
+                font-size: 17px;
+                border-radius: 11px;
+                bottom: 30px;
             }
         }
     </style>
 </head>
 <body>
-
-    <div id="rotateLock">
-        📱 세로 모드로 돌려주세요
-    </div>
 
     <img src="element/아일라_Idle.gif" alt="아일라 Idle 애니메이션">
 
