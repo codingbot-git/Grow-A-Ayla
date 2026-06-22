@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>아일라 키우기</title>
+
+    <!-- 모바일 확대 방지 -->
     <meta name="viewport"
           content="width=device-width,
                    initial-scale=1.0,
@@ -25,22 +27,24 @@
             background-color: #111;
         }
 
+        /* 아일라 */
         img {
             max-width: 70%;
             max-height: 70%;
             image-rendering: pixelated;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         /* 간지럽히기 버튼 */
         #tickleBtn {
-            padding: 12px 26px;
+            padding: 12px 28px;
             font-size: 16px;
             border-radius: 10px;
             border: none;
             cursor: pointer;
             background-color: #ff7aa2;
-            color: #fff;
+            color: white;
+            margin-bottom: 20px;
         }
 
         #tickleBtn:disabled {
@@ -68,6 +72,7 @@
             color: #000;
         }
 
+        /* 모바일 */
         @media (max-width: 600px) {
             img {
                 max-width: 75%;
@@ -83,22 +88,19 @@
 </head>
 <body>
 
-    <img id="ayla"
-         src="element/아일라_Idle.gif"
-         alt="아일라">
+    <!-- 아일라 -->
+    <img id="ayla" src="element/아일라_Idle.gif" alt="아일라">
 
+    <!-- 간지럽히기 -->
     <button id="tickleBtn">간지럽히기</button>
 
+    <!-- 다크모드 -->
     <button id="darkModeBtn">다크모드</button>
 
     <script>
         const ayla = document.getElementById("ayla");
         const tickleBtn = document.getElementById("tickleBtn");
         const darkBtn = document.getElementById("darkModeBtn");
-
-        let holdTimer = null;
-        let longHold = false;
-        let locked = false;
 
         const GIF = {
             idle: "element/아일라_Idle.gif",
@@ -107,39 +109,54 @@
             end: "element/아일라_Tickle_End.gif"
         };
 
-        function startTickle() {
-            if (locked) return;
+        let holdTimer = null;
+        let isHolding = false;
+        let isLocked = false;
 
-            longHold = false;
-            ayla.src = GIF.t1;
+        /* GIF 즉시 중단 + 처음부터 재생 */
+        function playGIF(src) {
+            ayla.src = "";
+            ayla.offsetHeight; // reflow
+            ayla.src = src + "?t=" + Date.now();
+        }
+
+        /* 간지럽히기 시작 */
+        function startTickle() {
+            if (isLocked) return;
+
+            isHolding = true;
+            playGIF(GIF.t1); // Idle 즉시 중단 → Tickle1
 
             holdTimer = setTimeout(() => {
-                longHold = true;
-                ayla.src = GIF.t2;
+                if (!isHolding) return;
+                playGIF(GIF.t2); // Tickle1 즉시 중단 → Tickle2
             }, 3000);
         }
 
+        /* 간지럽히기 종료 */
         function endTickle() {
-            if (locked) return;
+            if (!isHolding || isLocked) return;
 
+            isHolding = false;
             clearTimeout(holdTimer);
 
-            ayla.src = GIF.end;
-            lockButton();
-
-            /* End GIF 재생 시간 가정 (예: 1.2초) */
-            setTimeout(() => {
-                ayla.src = GIF.idle;
-            }, 1200);
+            playGIF(GIF.end); // 즉시 End
+            lockTickle();
         }
 
-        function lockButton() {
-            locked = true;
+        /* 버튼 잠금 */
+        function lockTickle() {
+            isLocked = true;
             tickleBtn.disabled = true;
 
-            /* End + Idle 이후 2초 */
+            /* End GIF 재생 시간 (필요 시 조절) */
             setTimeout(() => {
-                locked = false;
+                playGIF(GIF.idle); // Idle 복귀
+            }, 1200);
+
+            /* End 종료 + 2초 쿨타임 */
+            setTimeout(() => {
+                isLocked = false;
                 tickleBtn.disabled = false;
             }, 3200);
         }
@@ -154,7 +171,6 @@
             e.preventDefault();
             startTickle();
         });
-
         tickleBtn.addEventListener("touchend", endTickle);
 
         /* 다크모드 */
