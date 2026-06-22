@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>아일라 키우기</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- 📱 모바일 확대 방지 -->
+    <meta name="viewport"
+          content="width=device-width,
+                   initial-scale=1.0,
+                   maximum-scale=1.0,
+                   user-scalable=no">
 
     <style>
         body {
@@ -26,16 +32,16 @@
             image-rendering: pixelated;
         }
 
-        /* 기본 버튼 (PC) */
+        /* 버튼 (PC) */
         #darkModeBtn {
             position: fixed;
             bottom: 28px;
             left: 50%;
             transform: translateX(-50%);
-            padding: 12px 22px;   /* ← 조금 키움 */
+            padding: 12px 22px;
+            font-size: 17px;
             border: none;
             border-radius: 9px;
-            font-size: 17px;      /* ← 조금 키움 */
             cursor: pointer;
             background-color: #000;
             color: #fff;
@@ -46,23 +52,47 @@
             color: #000;
         }
 
-        /* 📱 모바일 */
+        /* 📱 모바일 (조금만 축소) */
         @media (max-width: 768px) {
             #darkModeBtn {
-                padding: 18px 32px;
-                font-size: 19px;
-                border-radius: 12px;
-                bottom: 32px;
+                padding: 15px 26px;   /* ← 살짝 줄임 */
+                font-size: 17px;
+                border-radius: 11px;
+                bottom: 30px;
             }
 
             img {
-                max-width: 80%;
-                max-height: 80%;
+                max-width: 75%;
+                max-height: 75%;
+            }
+        }
+
+        /* 📐 가로모드 차단 화면 */
+        #rotateLock {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: #000;
+            color: #fff;
+            font-size: 20px;
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        @media screen and (orientation: landscape) and (max-width: 768px) {
+            #rotateLock {
+                display: flex;
             }
         }
     </style>
 </head>
 <body>
+
+    <div id="rotateLock">
+        📱 세로 모드로 돌려주세요
+    </div>
 
     <img src="element/아일라_Idle.gif" alt="아일라 Idle 애니메이션">
 
